@@ -1,0 +1,1 @@
+# Stocksense---AI-Powered-Inventory-Management-system-For-Small-Businesses
