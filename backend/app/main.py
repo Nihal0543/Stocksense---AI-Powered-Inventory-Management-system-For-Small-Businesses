@@ -3,6 +3,8 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from app.config import settings
 from app.database import init_db
+from app.database.connection import SessionLocal
+from app.database.seeder import auto_seed_db
 from app.routers import auth, data, forecast, recommendations, chat, simulator
 
 app = FastAPI(
@@ -37,6 +39,11 @@ def on_startup():
     try:
         init_db()
         print("[Database] Successfully initialized database.")
+        db = SessionLocal()
+        try:
+            auto_seed_db(db)
+        finally:
+            db.close()
     except Exception as e:
         print(f"[Database] Error initializing database: {e}")
 

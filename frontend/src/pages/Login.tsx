@@ -77,11 +77,39 @@ export const Login: React.FC = () => {
         </div>
 
         {error && (
-          <div className="flex items-center space-x-2 bg-red-500/10 dark:bg-red-500/5 text-red-600 dark:text-red-400 border border-red-500/20 px-4 py-3 rounded-xl text-sm mb-6">
-            <AlertCircle className="h-5 w-5 flex-shrink-0" />
-            <span>{error}</span>
+          <div className="bg-red-500/10 dark:bg-red-500/5 text-red-600 dark:text-red-400 border border-red-500/20 p-4 rounded-xl text-sm mb-6 space-y-2">
+            <div className="flex items-start space-x-2">
+              <AlertCircle className="h-5 w-5 flex-shrink-0 mt-0.5" />
+              <div className="flex-1 text-xs leading-relaxed font-medium">
+                {error}
+              </div>
+            </div>
+            {error.toLowerCase().includes('connect') && (
+              <p className="text-[11px] text-zinc-500 dark:text-zinc-400 border-t border-red-500/10 pt-2">
+                Tip: When hosting on Netlify, deploy your Python backend to Render or Railway and set <code className="bg-black/10 dark:bg-white/10 px-1 py-0.5 rounded">VITE_API_URL</code> in your Netlify Environment Variables.
+              </p>
+            )}
           </div>
         )}
+
+        {/* Demo Credentials Box */}
+        <div className="mb-6 p-3.5 rounded-xl bg-emerald-500/5 border border-emerald-500/20 flex items-center justify-between text-xs">
+          <div>
+            <span className="font-semibold text-emerald-700 dark:text-emerald-400 block">Default Demo Account:</span>
+            <span className="text-zinc-500 dark:text-zinc-400">manager@retailstore.com / password123</span>
+          </div>
+          <button
+            type="button"
+            onClick={() => {
+              setEmail('manager@retailstore.com');
+              setPassword('password123');
+              setError('');
+            }}
+            className="px-2.5 py-1 bg-emerald-600 text-white rounded-lg font-medium hover:bg-emerald-500 transition text-[11px]"
+          >
+            Auto-Fill
+          </button>
+        </div>
 
         <form onSubmit={handleSubmit} className="space-y-4">
           {isRegister && (
