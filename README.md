@@ -128,3 +128,4 @@ GEMINI_API_KEY=your_gemini_api_key_here
 GCP_BUCKET_NAME=your_gcp_bucket_name
 GOOGLE_APPLICATION_CREDENTIALS=path_to_gcp_service_account_credentials.json
 ```
+# Stocksense---AI-Powered-Inventory-Management-system-For-Small-Businesses
