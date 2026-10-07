@@ -1,5 +1,5 @@
 @import "tailwindcss";
-@custom-variant dark (&:where(.dark, .dark *));
+@custom-variant dark (&:where(.dark, .dark *, [data-theme="dark"], [data-theme="dark"] *));
 
 @theme {
   --color-brand-50: #f0fdf4;
@@ -18,6 +18,17 @@
   --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
 }
 
+html {
+  transition: background-color 0.2s ease, color 0.2s ease;
+}
+
+html.dark,
+html[data-theme='dark'] {
+  color-scheme: dark;
+  background-color: #09090b !important;
+  color: #fafafa !important;
+}
+
 body {
   @apply bg-zinc-50 text-zinc-950 transition-colors duration-200 antialiased;
   font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
@@ -34,13 +45,13 @@ h1, h2, h3, h4, h5, h6 {
   font-family: 'Outfit', sans-serif;
 }
 
-
 /* Glassmorphism Styles */
 .glass-panel {
   @apply backdrop-blur-md bg-white/70 border border-white/20 shadow-glass-light transition-all duration-300;
 }
 
-.dark .glass-panel {
+.dark .glass-panel,
+[data-theme='dark'] .glass-panel {
   @apply bg-zinc-900/60 border-zinc-800/40 shadow-glass-dark;
 }
 
@@ -48,12 +59,18 @@ h1, h2, h3, h4, h5, h6 {
   @apply backdrop-blur-sm bg-white/40 border border-white/30 rounded-2xl shadow-sm hover:shadow-md transition-all duration-300 hover:bg-white/60;
 }
 
-.dark .glass-card {
+.dark .glass-card,
+[data-theme='dark'] .glass-card {
   @apply bg-zinc-900/40 border-zinc-800/30 hover:bg-zinc-900/60 shadow-none;
 }
 
 .glass-input {
-  @apply bg-white/50 dark:bg-zinc-900/50 border border-zinc-200 dark:border-zinc-800 rounded-xl px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/50 focus:border-emerald-500 transition-all duration-200;
+  @apply bg-white/50 border border-zinc-200 rounded-xl px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/50 focus:border-emerald-500 transition-all duration-200;
+}
+
+.dark .glass-input,
+[data-theme='dark'] .glass-input {
+  @apply bg-zinc-900/50 border-zinc-800 text-zinc-100;
 }
 
 /* Custom Scrollbar */
