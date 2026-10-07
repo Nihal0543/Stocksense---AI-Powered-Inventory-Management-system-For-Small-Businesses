@@ -49,29 +49,36 @@ This guide explains how to get your **StockSense AI** backend and frontend runni
 
 ---
 
-### Step 2: Connect Your Netlify Frontend to the Backend
+### Step 2: Automatic Netlify API Proxying & In-App Config
 
-1. Open your **[Netlify Dashboard](https://app.netlify.com/)** and select your StockSense AI site.
-2. Go to **Site configuration** -> **Environment variables**.
-3. Click **Add a variable** -> **Add a single variable**:
-   - **Key**: `VITE_API_URL`
-   - **Value**: `https://<YOUR-RENDER-BACKEND-NAME>.onrender.com/api`  
-     *(Make sure to append `/api` at the end!)*
-4. Go to **Deploys** in the top navigation bar.
-5. Click **Trigger deploy** -> **Clear cache and deploy site**.
-6. Wait 1 minute for Netlify to rebuild your frontend with the new backend URL.
+1. **Automatic Edge Proxying**:
+   - In both `netlify.toml` and `_redirects`, any request to `/api/*` is automatically reverse-proxied to `https://stocksense-ai-backend.onrender.com/api/:splat`.
+   - This eliminates CORS and mixed-content issues completely!
+2. **In-App Backend Override (Settings Page)**:
+   - If your Render app has a custom URL (e.g. `https://stocksense-ai-backend-xxxx.onrender.com`), you can simply open **Settings** inside StockSense AI and paste your custom backend URL into the **Render Cloud Backend URL** box, then click **Test Connection** & **Save**.
+3. **Triggering Deployment in Netlify**:
+   - Because all changes are committed and pushed to your connected GitHub branch (`main`), Netlify automatically initiates a new deployment!
+   - If you want to force an immediate clean build: in your Netlify dashboard, go to **Deploys** -> **Trigger deploy** -> **Clear cache and deploy site**.
 
 ---
 
-### Step 3: Test and Enjoy Your Live Application!
+### Step 3: Verified Features & End-to-End Walkthrough
 
-1. Open your Netlify site URL (e.g., `https://<your-site>.netlify.app`).
-2. On the login screen:
-   - Click the new **"Auto-Fill"** button (or enter `manager@retailstore.com` / `password123`).
-   - Click **Sign In**.
-3. You will immediately see:
-   - **Manager KPI Dashboard**: Live inventory values, today's sales, low stock alerts, and interactive charts.
-   - **Interactive Inventory Portal**: Search by name or SKU, filter by category or warehouse, and view real-time stock levels.
+1. **Language Toggle (English / हिन्दी)**:
+   - Located on the top-right of the **Login page**, the **Header navigation**, and mobile sidebar.
+   - Instantly switches the entire application between English and Hindi with native Devanagari typography, including KPI dashboards, menus, forecast tables, decision simulators, and AI Chat prompts.
+2. **Indian Rupee (₹) Currency Everywhere**:
+   - All revenue numbers, unit prices, holding costs, restocking projections, impact scores, and AI recommendations are natively presented in **₹ (INR)** with Indian numbering format (`en-IN`).
+3. **Dark / Light Mode Toggle**:
+   - Fully synchronized theme switcher with Tailwind CSS v4 class-based styling and localStorage persistence.
+4. **Manager Login Credentials**:
+   - Email: `manager@retailstore.com`
+   - Password: `password123`
+   - Or click the **Auto-Fill Manager Credentials** button on the login screen.
+5. **Full Feature Tour**:
+   - **Manager KPI Dashboard**: Live inventory values, today's sales, low stock alerts, and interactive charts in ₹.
+   - **Interactive Inventory Portal**: Search by name or SKU, filter by category or warehouse, and view real-time stock levels in ₹.
    - **ML Demand Forecasting**: View predicted daily sales demand and stockout probabilities powered by XGBoost.
-   - **Decision Simulator**: Interactive sliders to simulate restocking quantities, profit margins, and ROI with AI explanations.
-   - **AI Kirana Assistant**: Natural language store assistant that queries your inventory database.
+   - **Decision Simulator**: Interactive sliders to simulate restocking quantities, profit margins, and ROI with AI explanations in ₹.
+   - **AI Kirana Assistant**: Natural language store assistant that queries your inventory database in both English and Hindi.
+
