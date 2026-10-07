@@ -12,7 +12,7 @@
 
 | Component | Platform | Live URL / Access Link |
 | :--- | :--- | :--- |
-| **Frontend Web Application** | **Netlify** | 🚀 **[Launch StockSense AI on Netlify](https://stocksense-ai-retail.netlify.app)** *(or visit your connected Netlify site)* |
+| **Frontend Web Application** | **Netlify** | 🚀 **[Launch StockSense AI on Netlify](https://stocksense-ai-retail.netlify.app)** *(https://stocksense-inventroymanagementsystem.netlify.app)* |
 | **Backend REST API Server** | **Render** | ⚡ **[https://stocksense-ai-backend.onrender.com](https://stocksense-ai-backend.onrender.com)** |
 | **Interactive API Documentation** | **Render Swagger UI** | 📖 **[https://stocksense-ai-backend.onrender.com/docs](https://stocksense-ai-backend.onrender.com/docs)** |
 | **GitHub Source Code** | **GitHub** | 💻 **[Nihal0543/Stocksense AI Repository](https://github.com/Nihal0543/Stocksense---AI-Powered-Inventory-Management-system-For-Small-Businesses)** |
