@@ -1,18 +1,21 @@
 import React, { useState } from 'react';
-import { api } from '../services/api';
+import { api, API_BASE_URL } from '../services/api';
 import GlassCard from '../components/GlassCard';
+import { useLanguage } from '../context/LanguageContext';
 import { 
   FileSpreadsheet, 
   Brain, 
-  Database, 
   CheckCircle2, 
   AlertTriangle, 
-  Info, 
   UploadCloud, 
-  Compass 
+  Compass,
+  Server,
+  RefreshCw
 } from 'lucide-react';
 
 export const Settings: React.FC = () => {
+  const { t } = useLanguage();
+
   // CSV Upload States
   const [csvFile, setCsvFile] = useState<File | null>(null);
   const [uploading, setUploading] = useState(false);
@@ -21,6 +24,13 @@ export const Settings: React.FC = () => {
   // Model training States
   const [training, setTraining] = useState(false);
   const [trainStatus, setTrainStatus] = useState<{ type: 'success' | 'error'; message: string; data?: any } | null>(null);
+
+  // Backend URL Config state
+  const [customBackendUrl, setCustomBackendUrl] = useState(() => {
+    return localStorage.getItem('stocksense_api_url') || API_BASE_URL;
+  });
+  const [backendTestStatus, setBackendTestStatus] = useState<string | null>(null);
+  const [testingBackend, setTestingBackend] = useState(false);
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
@@ -72,12 +82,80 @@ export const Settings: React.FC = () => {
     }
   };
 
+  const handleSaveBackendUrl = () => {
+    let url = customBackendUrl.trim();
+    if (url && !url.endsWith('/api') && !url.endsWith('/api/')) {
+      url = url.replace(/\/$/, '') + '/api';
+    }
+    localStorage.setItem('stocksense_api_url', url);
+    setCustomBackendUrl(url);
+    window.location.reload();
+  };
+
+  const handleTestBackendConnection = async () => {
+    setTestingBackend(true);
+    setBackendTestStatus(null);
+    try {
+      let target = customBackendUrl.trim();
+      if (!target.endsWith('/api')) target = target.replace(/\/$/, '') + '/api';
+      const res = await fetch(`${target}/products`);
+      if (res.ok) {
+        setBackendTestStatus('Connected! Backend is live and responding (200 OK).');
+      } else {
+        setBackendTestStatus(`Server responded with status ${res.status}.`);
+      }
+    } catch (e: any) {
+      setBackendTestStatus(`Connection error: ${e.message || 'Cannot reach server'}`);
+    } finally {
+      setTestingBackend(false);
+    }
+  };
+
   return (
     <div className="space-y-8 animate-fade-in">
+      {/* Backend Connection Info Card */}
+      <GlassCard title={t('backendConfigTitle')} subtitle={t('backendConfigDesc')}>
+        <div className="space-y-4">
+          <div className="flex flex-col sm:flex-row gap-3 items-stretch sm:items-center">
+            <div className="flex-1 relative">
+              <Server className="absolute left-3.5 top-3 h-4 w-4 text-zinc-400" />
+              <input
+                type="text"
+                className="w-full glass-input pl-10 text-xs font-mono"
+                placeholder="https://stocksense-ai-backend.onrender.com/api"
+                value={customBackendUrl}
+                onChange={(e) => setCustomBackendUrl(e.target.value)}
+              />
+            </div>
+            <button
+              type="button"
+              onClick={handleTestBackendConnection}
+              disabled={testingBackend}
+              className="px-4 py-2 bg-zinc-100 hover:bg-zinc-200 dark:bg-zinc-800 dark:hover:bg-zinc-700 text-zinc-700 dark:text-zinc-200 text-xs font-semibold rounded-xl transition cursor-pointer flex items-center justify-center gap-1.5"
+            >
+              {testingBackend ? <RefreshCw className="h-3.5 w-3.5 animate-spin" /> : null}
+              <span>Test Connection</span>
+            </button>
+            <button
+              type="button"
+              onClick={handleSaveBackendUrl}
+              className="px-5 py-2 bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold rounded-xl transition shadow-sm cursor-pointer"
+            >
+              Save & Reload
+            </button>
+          </div>
+          {backendTestStatus && (
+            <p className={`text-xs font-medium ${backendTestStatus.includes('Connected') ? 'text-emerald-600 dark:text-emerald-400' : 'text-amber-600 dark:text-amber-400'}`}>
+              {backendTestStatus}
+            </p>
+          )}
+        </div>
+      </GlassCard>
+
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         
         {/* CSV Ingestion Panel */}
-        <GlassCard title="Data Ingestion Portal" subtitle="Upload CSV sales and stock levels.">
+        <GlassCard title={t('uploadCsvTitle')} subtitle={t('uploadCsvDesc')}>
           <form onSubmit={handleCSVUpload} className="space-y-4">
             <div className="border-2 border-dashed border-zinc-200 dark:border-zinc-800 rounded-2xl p-6 flex flex-col items-center justify-center text-center hover:border-emerald-500/50 dark:hover:border-emerald-500/40 transition-colors">
               <UploadCloud size={32} className="text-zinc-400 mb-3" />
@@ -105,7 +183,7 @@ export const Settings: React.FC = () => {
             <button
               type="submit"
               disabled={uploading || !csvFile}
-              className="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-semibold py-3 px-4 rounded-xl flex items-center justify-center space-x-2 shadow-sm transition-all disabled:opacity-50"
+              className="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-semibold py-3 px-4 rounded-xl flex items-center justify-center space-x-2 shadow-sm transition-all disabled:opacity-50 cursor-pointer"
             >
               {uploading ? (
                 <>
@@ -143,7 +221,7 @@ export const Settings: React.FC = () => {
         </GlassCard>
 
         {/* XGBoost Forecasting Model Trainer */}
-        <GlassCard title="Demand Forecaster Diagnostics" subtitle="Train the XGBoost regressor model.">
+        <GlassCard title={t('retrainModelTitle')} subtitle={t('retrainModelDesc')}>
           <div className="space-y-4">
             <p className="text-sm text-zinc-600 dark:text-zinc-400 leading-relaxed font-medium">
               Training queries your historical database, transforms dates into lag structures (past 1, 7 days sales) and calendar seasonality matrices, and fits an XGBoost decision tree ensemble.
@@ -152,7 +230,7 @@ export const Settings: React.FC = () => {
             <button
               onClick={handleTrainModel}
               disabled={training}
-              className="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-semibold py-3 px-4 rounded-xl flex items-center justify-center space-x-2 shadow-sm transition-all disabled:opacity-50"
+              className="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-semibold py-3 px-4 rounded-xl flex items-center justify-center space-x-2 shadow-sm transition-all disabled:opacity-50 cursor-pointer"
             >
               {training ? (
                 <>
@@ -180,7 +258,7 @@ export const Settings: React.FC = () => {
               </div>
               {trainStatus.data && (
                 <ul className="text-xs list-disc list-inside space-y-1 mt-1 text-zinc-500 dark:text-zinc-400 font-medium">
-                  <li>Evaluation $R^2$ Score: {trainStatus.data.r2_score.toFixed(4)}</li>
+                  <li>Evaluation R² Score: {trainStatus.data.r2_score.toFixed(4)}</li>
                   <li>Mean Squared Error (MSE): {trainStatus.data.mse.toFixed(2)}</li>
                   <li>Overall model prediction confidence: {trainStatus.data.confidence_score}%</li>
                 </ul>
@@ -191,7 +269,7 @@ export const Settings: React.FC = () => {
       </div>
 
       {/* Looker Studio Integration Guide */}
-      <GlassCard title="Looker Studio Integration" subtitle="How to connect reporting sheets.">
+      <GlassCard title={t('lookerGuideTitle')} subtitle={t('lookerGuideDesc')}>
         <div className="space-y-6">
           <div className="flex items-start space-x-3 text-zinc-500 dark:text-zinc-400 bg-zinc-100 dark:bg-zinc-900/40 p-4.5 rounded-2xl border border-zinc-200/50 dark:border-zinc-800/30">
             <Compass size={22} className="text-emerald-600 dark:text-emerald-500 flex-shrink-0 mt-0.5" />

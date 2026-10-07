@@ -6,11 +6,12 @@
 const envUrl = (import.meta.env.VITE_API_URL || '').trim();
 const isLocalhost = typeof window !== 'undefined' && 
   (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1');
+const storedUrl = typeof window !== 'undefined' ? (localStorage.getItem('stocksense_api_url') || '').trim() : '';
 
-let resolvedBaseUrl = envUrl;
+let resolvedBaseUrl = storedUrl || envUrl;
 
 if (!isLocalhost && resolvedBaseUrl && (resolvedBaseUrl.includes('localhost') || resolvedBaseUrl.includes('127.0.0.1'))) {
-  console.warn('[StockSense] VITE_API_URL points to localhost in production. Using relative "/api" to avoid mixed content block.');
+  console.warn('[StockSense] API points to localhost in production. Using relative "/api" to avoid mixed content block.');
   resolvedBaseUrl = '/api';
 }
 

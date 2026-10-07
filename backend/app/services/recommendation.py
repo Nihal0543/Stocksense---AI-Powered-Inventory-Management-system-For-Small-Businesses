@@ -81,7 +81,7 @@ class RecommendationService:
                 holding_cost_est = excess_units * (prod.price * 0.05) # Assume 5% of unit price monthly holding cost
                 revenue_impact = -round(holding_cost_est, 2) # Negative indicates cost savings if reduced
                 
-                rec_text = f"Overstock detected. Current inventory ({current_stock} units) covers over 45 days of demand. Run a promotion or discount to reduce holding costs by ${abs(revenue_impact)}."
+                rec_text = f"Overstock detected. Current inventory ({current_stock} units) covers over 45 days of demand. Run a promotion or discount to reduce holding costs by ₹{abs(revenue_impact):,.2f}."
 
             # Rule 3: Lead time buffer early purchase (Stock is okay for now, but lead time is high and stock is approaching reorder level)
             elif lead_time_days >= 10 and current_stock < (needed_stock_lead_time * 1.5):

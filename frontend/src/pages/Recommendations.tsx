@@ -3,11 +3,11 @@ import { useNavigate } from 'react-router-dom';
 import { api } from '../services/api';
 import type { RecommendationItem } from '../types';
 import GlassCard from '../components/GlassCard';
+import { useLanguage } from '../context/LanguageContext';
 import { 
   AlertTriangle, 
   ArrowUpRight, 
   CheckCircle, 
-  DollarSign, 
   PackageCheck, 
   Sliders, 
   Truck 
@@ -17,6 +17,7 @@ export const Recommendations: React.FC = () => {
   const [recommendations, setRecommendations] = useState<RecommendationItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const { t, formatCurrency } = useLanguage();
   
   const navigate = useNavigate();
 
@@ -38,7 +39,6 @@ export const Recommendations: React.FC = () => {
   };
 
   const handleSimulateClick = (productId: number, reorderQty: number) => {
-    // Navigate and pre-fill reorder quantity if needed
     navigate(`/simulator?productId=${productId}&qty=${reorderQty}`);
   };
 
@@ -69,7 +69,9 @@ export const Recommendations: React.FC = () => {
       {recommendations.length === 0 ? (
         <GlassCard className="text-center py-12">
           <PackageCheck className="h-12 w-12 text-zinc-400 mx-auto mb-4" />
-          <h3 className="text-lg font-bold text-zinc-900 dark:text-white">No Recommendations Found</h3>
+          <h3 className="text-lg font-bold text-zinc-900 dark:text-white">
+            {t('noRecommendations')}
+          </h3>
           <p className="text-zinc-500 dark:text-zinc-400 text-sm mt-2">
             Upload CSV data and trigger forecast training to generate recommendations.
           </p>
@@ -81,7 +83,7 @@ export const Recommendations: React.FC = () => {
             <GlassCard className="border-l-4 border-l-red-500">
               <div className="flex items-center space-x-3 text-red-500 mb-2">
                 <AlertTriangle size={20} />
-                <h4 className="font-bold text-xs uppercase tracking-wider">Critical Actions</h4>
+                <h4 className="font-bold text-xs uppercase tracking-wider">{t('urgencyHigh')}</h4>
               </div>
               <p className="text-2xl font-extrabold text-zinc-900 dark:text-white">{highPriority.length}</p>
               <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-1">Products requiring immediate restock orders.</p>
@@ -90,7 +92,7 @@ export const Recommendations: React.FC = () => {
             <GlassCard className="border-l-4 border-l-amber-500">
               <div className="flex items-center space-x-3 text-amber-500 mb-2">
                 <Truck size={20} />
-                <h4 className="font-bold text-xs uppercase tracking-wider">Lead Time Alerts</h4>
+                <h4 className="font-bold text-xs uppercase tracking-wider">{t('urgencyMed')}</h4>
               </div>
               <p className="text-2xl font-extrabold text-zinc-900 dark:text-white">{mediumPriority.length}</p>
               <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-1">Medium priority early purchases due to vendor lag.</p>
@@ -99,7 +101,7 @@ export const Recommendations: React.FC = () => {
             <GlassCard className="border-l-4 border-l-emerald-500">
               <div className="flex items-center space-x-3 text-emerald-500 mb-2">
                 <CheckCircle size={20} />
-                <h4 className="font-bold text-xs uppercase tracking-wider">Surplus / Healthy</h4>
+                <h4 className="font-bold text-xs uppercase tracking-wider">{t('urgencyLow')}</h4>
               </div>
               <p className="text-2xl font-extrabold text-zinc-900 dark:text-white">{lowPriority.length}</p>
               <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-1">Items that are fully stocked or overstocked.</p>
@@ -108,7 +110,9 @@ export const Recommendations: React.FC = () => {
 
           {/* Recommendations Card Stack */}
           <div className="space-y-6">
-            <h3 className="text-xl font-extrabold tracking-tight text-zinc-900 dark:text-white">Active Recommendations</h3>
+            <h3 className="text-xl font-extrabold tracking-tight text-zinc-900 dark:text-white">
+              {t('headerRecTitle')}
+            </h3>
             
             <div className="grid grid-cols-1 gap-6">
               {recommendations.map((rec) => {
@@ -117,13 +121,16 @@ export const Recommendations: React.FC = () => {
                 
                 let borderClass = 'border-zinc-200 dark:border-zinc-800';
                 let priorityPill = 'bg-zinc-100 text-zinc-600 dark:bg-zinc-800 dark:text-zinc-400';
+                let priorityLabel = t('priorityLow');
                 
                 if (isHigh) {
                   borderClass = 'border-red-500/30 bg-red-500/[0.02]';
                   priorityPill = 'bg-red-500/10 text-red-600 dark:text-red-400 border border-red-500/20';
+                  priorityLabel = t('priorityCritical');
                 } else if (isMed) {
                   borderClass = 'border-amber-500/30 bg-amber-500/[0.02]';
                   priorityPill = 'bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20';
+                  priorityLabel = t('priorityMedium');
                 }
 
                 return (
@@ -135,10 +142,10 @@ export const Recommendations: React.FC = () => {
                     <div className="space-y-3 max-w-2xl">
                       <div className="flex items-center space-x-2.5">
                         <span className={`px-2.5 py-0.5 rounded-full text-xs font-bold ${priorityPill}`}>
-                          {rec.priority} PRIORITY
+                          {priorityLabel}
                         </span>
-                        <span className="text-xs text-zinc-400 dark:text-zinc-500">
-                          SKU: {rec.sku} • Warehouse: {rec.warehouse}
+                        <span className="text-xs text-zinc-400 dark:text-zinc-500 font-mono">
+                          SKU: {rec.sku} • {rec.warehouse}
                         </span>
                       </div>
                       
@@ -154,19 +161,33 @@ export const Recommendations: React.FC = () => {
                     {/* Middle: Details Grid */}
                     <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 bg-white/40 dark:bg-zinc-900/40 p-4 rounded-xl border border-zinc-200/50 dark:border-zinc-800/30 w-full lg:w-auto">
                       <div>
-                        <div className="text-[10px] uppercase font-bold tracking-wider text-zinc-400">Current Stock</div>
-                        <div className="text-sm font-bold text-zinc-900 dark:text-white mt-0.5">{rec.current_stock}</div>
+                        <div className="text-[10px] uppercase font-bold tracking-wider text-zinc-400">
+                          {t('currentStockLevel')}
+                        </div>
+                        <div className="text-sm font-bold text-zinc-900 dark:text-white mt-0.5">
+                          {rec.current_stock}
+                        </div>
                       </div>
                       <div>
-                        <div className="text-[10px] uppercase font-bold tracking-wider text-zinc-400">30D Demand Est.</div>
-                        <div className="text-sm font-bold text-zinc-900 dark:text-white mt-0.5">{Math.round(rec.predicted_demand)}</div>
+                        <div className="text-[10px] uppercase font-bold tracking-wider text-zinc-400">
+                          30D Demand
+                        </div>
+                        <div className="text-sm font-bold text-zinc-900 dark:text-white mt-0.5">
+                          {Math.round(rec.predicted_demand)}
+                        </div>
                       </div>
                       <div>
-                        <div className="text-[10px] uppercase font-bold tracking-wider text-zinc-400">Lead Time</div>
-                        <div className="text-sm font-bold text-zinc-900 dark:text-white mt-0.5">{rec.lead_time_days} days</div>
+                        <div className="text-[10px] uppercase font-bold tracking-wider text-zinc-400">
+                          {t('leadTime')}
+                        </div>
+                        <div className="text-sm font-bold text-zinc-900 dark:text-white mt-0.5">
+                          {rec.lead_time_days} days
+                        </div>
                       </div>
                       <div>
-                        <div className="text-[10px] uppercase font-bold tracking-wider text-zinc-400">Revenue Impact</div>
+                        <div className="text-[10px] uppercase font-bold tracking-wider text-zinc-400">
+                          {t('revenueImpact')}
+                        </div>
                         <div className={`text-sm font-extrabold mt-0.5 ${
                           rec.revenue_impact > 0 
                             ? 'text-emerald-500' 
@@ -174,7 +195,7 @@ export const Recommendations: React.FC = () => {
                               ? 'text-pink-500' 
                               : 'text-zinc-500'
                         }`}>
-                          {rec.revenue_impact > 0 ? '+' : ''}${rec.revenue_impact.toLocaleString()}
+                          {rec.revenue_impact > 0 ? '+' : ''}{formatCurrency(rec.revenue_impact)}
                         </div>
                       </div>
                     </div>
@@ -183,10 +204,10 @@ export const Recommendations: React.FC = () => {
                     <div className="flex-shrink-0 w-full lg:w-auto">
                       <button
                         onClick={() => handleSimulateClick(rec.product_id, rec.reorder_quantity)}
-                        className="w-full lg:w-auto bg-emerald-600 hover:bg-emerald-500 text-white font-semibold py-3 px-5 rounded-xl flex items-center justify-center space-x-2 shadow-sm transition-all text-sm"
+                        className="w-full lg:w-auto bg-emerald-600 hover:bg-emerald-500 text-white font-semibold py-3 px-5 rounded-xl flex items-center justify-center space-x-2 shadow-sm transition-all text-sm cursor-pointer"
                       >
                         <Sliders size={16} />
-                        <span>Simulate Decision</span>
+                        <span>{t('btnSimulateOrder')}</span>
                         <ArrowUpRight size={14} />
                       </button>
                     </div>

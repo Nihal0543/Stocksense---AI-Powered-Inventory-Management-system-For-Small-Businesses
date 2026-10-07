@@ -3,12 +3,14 @@ import { useNavigate } from 'react-router-dom';
 import { api } from '../services/api';
 import type { InventoryItem } from '../types';
 import GlassCard from '../components/GlassCard';
-import { Search, AlertTriangle, Sliders, CheckCircle, HelpCircle } from 'lucide-react';
+import { useLanguage } from '../context/LanguageContext';
+import { Search, Sliders } from 'lucide-react';
 
 export const Inventory: React.FC = () => {
   const [inventory, setInventory] = useState<InventoryItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const { t, formatCurrency } = useLanguage();
   
   // Filter states
   const [searchTerm, setSearchTerm] = useState('');
@@ -41,9 +43,7 @@ export const Inventory: React.FC = () => {
       });
       setInventory(data);
 
-      // On initial load, gather filter categories from all items in DB
       if (categories.length === 0 && data.length > 0) {
-        // We'll fetch the unfiltered list once to populate filter choices
         const allData = await api.getInventory();
         const cats = Array.from(new Set(allData.map((item: any) => item.category))) as string[];
         const sups = Array.from(new Set(allData.map((item: any) => item.supplier))) as string[];
@@ -68,6 +68,13 @@ export const Inventory: React.FC = () => {
     navigate(`/simulator?productId=${productId}`);
   };
 
+  const getStatusText = (status: string) => {
+    if (status === 'LOW STOCK') return t('lowStock');
+    if (status === 'OVERSTOCK') return t('overstock');
+    if (status === 'OUT OF STOCK') return t('outOfStock');
+    return t('inStock');
+  };
+
   return (
     <div className="space-y-6 animate-fade-in">
       {/* Search and Filters Bar */}
@@ -78,7 +85,7 @@ export const Inventory: React.FC = () => {
             <input
               type="text"
               className="w-full glass-input pl-10"
-              placeholder="Search product name or SKU..."
+              placeholder={t('searchPlaceholder')}
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
             />
@@ -92,7 +99,7 @@ export const Inventory: React.FC = () => {
               value={selectedCategory}
               onChange={(e) => setSelectedCategory(e.target.value)}
             >
-              <option value="All">All Categories</option>
+              <option value="All">{t('allCategories')}</option>
               {categories.map((c) => (
                 <option key={c} value={c}>{c}</option>
               ))}
@@ -120,7 +127,7 @@ export const Inventory: React.FC = () => {
               value={selectedWarehouse}
               onChange={(e) => setSelectedWarehouse(e.target.value)}
             >
-              <option value="All">All Warehouses</option>
+              <option value="All">{t('allWarehouses')}</option>
               {warehouses.map((w) => (
                 <option key={w} value={w}>{w}</option>
               ))}
@@ -131,9 +138,9 @@ export const Inventory: React.FC = () => {
           <div className="md:col-span-2 flex space-x-2">
             <button
               type="submit"
-              className="flex-1 bg-emerald-600 hover:bg-emerald-500 text-white text-sm font-semibold py-2 px-4 rounded-xl shadow-sm transition-all"
+              className="flex-1 bg-emerald-600 hover:bg-emerald-500 text-white text-sm font-semibold py-2 px-4 rounded-xl shadow-sm transition-all cursor-pointer"
             >
-              Search
+              {t('btnSend', 'Search')}
             </button>
             
             <button
@@ -145,7 +152,7 @@ export const Inventory: React.FC = () => {
                 setSelectedWarehouse('All');
                 setShowLowStockOnly(false);
               }}
-              className="px-3 py-2 bg-zinc-100 hover:bg-zinc-200 dark:bg-zinc-800 dark:hover:bg-zinc-700 text-zinc-500 dark:text-zinc-400 rounded-xl text-sm font-medium transition-all"
+              className="px-3 py-2 bg-zinc-100 hover:bg-zinc-200 dark:bg-zinc-800 dark:hover:bg-zinc-700 text-zinc-600 dark:text-zinc-300 rounded-xl text-sm font-medium transition-all cursor-pointer"
             >
               Reset
             </button>
@@ -159,16 +166,16 @@ export const Inventory: React.FC = () => {
             id="lowStockToggle"
             checked={showLowStockOnly}
             onChange={(e) => setShowLowStockOnly(e.target.checked)}
-            className="rounded text-emerald-600 focus:ring-emerald-500 h-4 w-4"
+            className="rounded text-emerald-600 focus:ring-emerald-500 h-4 w-4 cursor-pointer"
           />
           <label htmlFor="lowStockToggle" className="text-xs font-semibold text-zinc-600 dark:text-zinc-400 cursor-pointer">
-            Show low stock items only (below reorder level)
+            {t('lowStockOnly', 'Show low stock items only (below reorder level)')}
           </label>
         </div>
       </GlassCard>
 
       {/* Inventory List Card */}
-      <GlassCard title="Inventory Listing" subtitle={`Showing ${inventory.length} products matching filters.`}>
+      <GlassCard title={t('inventoryTitle')} subtitle={`Showing ${inventory.length} products matching filters.`}>
         {loading ? (
           <div className="py-12 flex justify-center">
             <div className="h-8 w-8 border-4 border-emerald-500 border-t-transparent rounded-full animate-spin"></div>
@@ -177,20 +184,20 @@ export const Inventory: React.FC = () => {
           <div className="text-red-500 text-center py-6">{error}</div>
         ) : inventory.length === 0 ? (
           <div className="text-center py-12 text-zinc-500 dark:text-zinc-400 text-sm">
-            No products found matching your search.
+            {t('noProductsFound')}
           </div>
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full text-left border-collapse">
               <thead>
                 <tr className="border-b border-zinc-200 dark:border-zinc-800 text-xs font-bold text-zinc-400 dark:text-zinc-500 uppercase tracking-wider">
-                  <th className="py-3.5 px-4">Product Details</th>
-                  <th className="py-3.5 px-4">SKU / Code</th>
-                  <th className="py-3.5 px-4">Warehouse</th>
-                  <th className="py-3.5 px-4 text-right">Unit Price</th>
-                  <th className="py-3.5 px-4 text-right">Stock Level</th>
-                  <th className="py-3.5 px-4 text-center">Status</th>
-                  <th className="py-3.5 px-4 text-center">Actions</th>
+                  <th className="py-3.5 px-4">{t('thProduct')}</th>
+                  <th className="py-3.5 px-4">{t('thSku')}</th>
+                  <th className="py-3.5 px-4">{t('thWarehouse')}</th>
+                  <th className="py-3.5 px-4 text-right">{t('thPrice')}</th>
+                  <th className="py-3.5 px-4 text-right">{t('thStock')}</th>
+                  <th className="py-3.5 px-4 text-center">{t('thStatus')}</th>
+                  <th className="py-3.5 px-4 text-center">{t('thActions')}</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-zinc-200/50 dark:divide-zinc-800/30 text-sm">
@@ -208,7 +215,7 @@ export const Inventory: React.FC = () => {
                   return (
                     <tr 
                       key={item.id} 
-                      className="hover:bg-zinc-50/40 dark:hover:bg-zinc-900/10 transition-colors"
+                      className="hover:bg-zinc-50/60 dark:hover:bg-zinc-800/20 transition-colors"
                     >
                       <td className="py-4 px-4">
                         <div className="font-semibold text-zinc-900 dark:text-white">{item.product_name}</div>
@@ -221,7 +228,7 @@ export const Inventory: React.FC = () => {
                         {item.warehouse}
                       </td>
                       <td className="py-4 px-4 text-right font-medium text-zinc-900 dark:text-zinc-100">
-                        ${item.price.toFixed(2)}
+                        {formatCurrency(item.price)}
                       </td>
                       <td className="py-4 px-4 text-right">
                         <div className="font-bold text-zinc-950 dark:text-white">{item.current_stock}</div>
@@ -230,7 +237,7 @@ export const Inventory: React.FC = () => {
                       <td className="py-4 px-4">
                         <div className="flex justify-center">
                           <span className={`px-2.5 py-0.5 rounded-full text-xs font-semibold ${statusBadge}`}>
-                            {item.status}
+                            {getStatusText(item.status)}
                           </span>
                         </div>
                       </td>
@@ -238,11 +245,11 @@ export const Inventory: React.FC = () => {
                         <div className="flex justify-center">
                           <button
                             onClick={() => handleSimulateClick(item.product_id)}
-                            className="p-2 hover:bg-emerald-500/10 hover:text-emerald-600 dark:hover:bg-emerald-500/20 text-zinc-400 dark:text-zinc-500 rounded-xl transition-all flex items-center space-x-1"
+                            className="p-2 hover:bg-emerald-500/10 hover:text-emerald-600 dark:hover:bg-emerald-500/20 text-zinc-400 dark:text-zinc-500 rounded-xl transition-all flex items-center space-x-1 cursor-pointer"
                             title="Open Decision Simulator"
                           >
                             <Sliders size={16} />
-                            <span className="text-xs font-bold px-0.5">Simulate</span>
+                            <span className="text-xs font-bold px-0.5">{t('btnSimulate')}</span>
                           </button>
                         </div>
                       </td>

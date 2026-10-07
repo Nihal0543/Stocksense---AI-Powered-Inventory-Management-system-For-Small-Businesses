@@ -2,7 +2,7 @@ import os
 import requests
 
 def seed_database_via_api():
-    base_url = "https://stocksense-backend.onrender.com/api"
+    base_url = "https://stocksense-ai-backend.onrender.com/api"
     
     # 1. Register default user
     print("[API Seed] Registering default manager...")

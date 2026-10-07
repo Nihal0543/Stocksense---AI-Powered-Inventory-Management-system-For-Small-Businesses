@@ -78,6 +78,8 @@ class GeminiService:
         # Build prompt
         prompt = (
             f"You are StockSense AI, a professional Decision Intelligence Assistant for retail store managers.\n"
+            f"Always quote all financial figures, revenue, and costs in Indian Rupees (₹), never in dollars ($).\n"
+            f"Understand and respond naturally in English or Hindi (हिन्दी) according to the user's inquiry.\n"
             f"Use the following real-time database context to help answer the user's question accurately.\n"
             f"Be concise, actionable, and focus on inventory economics (revenue, holding costs, lost sales).\n\n"
             f"{db_context}\n"
@@ -141,7 +143,7 @@ class GeminiService:
             res += "| Product | Category | Units Sold | Total Revenue |\n"
             res += "| :--- | :--- | :--- | :--- |\n"
             for row in top_sales:
-                res += f"| **{row[0]}** | {row[1]} | {row[2]} units | ${row[3]:,.2f} |\n"
+                res += f"| **{row[0]}** | {row[1]} | {row[2]} units | ₹{row[3]:,.2f} |\n"
             
             res += "\nDemand is typically driven by weekday seasonality (grocery items peak Friday-Saturday) and product promotional campaigns."
             return res
@@ -216,21 +218,21 @@ class GeminiService:
         """
         prompt = (
             f"Explain the inventory decision trade-off for '{product_name}'.\n"
-            f"Product Price: ${selling_price}, Unit Cost: ${unit_cost}\n"
+            f"Product Price: ₹{selling_price}, Unit Cost: ₹{unit_cost}\n"
             f"Current Stock: {current_inventory} units, Predicted Demand (30-day): {predicted_demand} units.\n"
             f"Scenario A (AI Recommended Order): Quantity = {rec_qty} units\n"
-            f"  - Expected Revenue: ${metrics_a['expected_revenue']}\n"
-            f"  - Expected Profit: ${metrics_a['expected_profit']}\n"
-            f"  - Holding Cost: ${metrics_a['holding_cost']}\n"
+            f"  - Expected Revenue: ₹{metrics_a['expected_revenue']}\n"
+            f"  - Expected Profit: ₹{metrics_a['expected_profit']}\n"
+            f"  - Holding Cost: ₹{metrics_a['holding_cost']}\n"
             f"  - Stockout Risk: {int(metrics_a['stockout_probability']*100)}%\n"
             f"  - Lost Sales: {metrics_a['expected_lost_sales']} units\n"
             f"Scenario B (Manager Selected Order): Quantity = {sel_qty} units\n"
-            f"  - Expected Revenue: ${metrics_b['expected_revenue']}\n"
-            f"  - Expected Profit: ${metrics_b['expected_profit']}\n"
-            f"  - Holding Cost: ${metrics_b['holding_cost']}\n"
+            f"  - Expected Revenue: ₹{metrics_b['expected_revenue']}\n"
+            f"  - Expected Profit: ₹{metrics_b['expected_profit']}\n"
+            f"  - Holding Cost: ₹{metrics_b['holding_cost']}\n"
             f"  - Stockout Risk: {int(metrics_b['stockout_probability']*100)}%\n"
             f"  - Lost Sales: {metrics_b['expected_lost_sales']} units\n\n"
-            f"Write a 3-4 sentence professional business analysis explaining which option is better, the trade-off in holding costs vs stockout revenue, and the overall net impact."
+            f"Always use Indian Rupees (₹) for all currencies. Write a 3-4 sentence professional business analysis explaining which option is better, the trade-off in holding costs vs stockout revenue, and the overall net impact."
         )
 
         if self.client:
@@ -251,8 +253,8 @@ class GeminiService:
             return (
                 f"You have selected the AI Recommended quantity of **{rec_qty} units** for {product_name}. "
                 f"This decision strikes an optimal balance, providing a low stockout probability ({int(metrics_a['stockout_probability']*100)}%) "
-                f"while keeping monthly holding costs minimized at ${metrics_a['holding_cost']:.2f}. "
-                f"It maximizes expected cash-flow profit to ${metrics_a['expected_profit']:.2f}."
+                f"while keeping monthly holding costs minimized at ₹{metrics_a['holding_cost']:.2f}. "
+                f"It maximizes expected cash-flow profit to ₹{metrics_a['expected_profit']:.2f}."
             )
             
         elif diff_qty < 0:
@@ -262,23 +264,23 @@ class GeminiService:
             
             explanation = (
                 f"By ordering **{sel_qty} units** (which is {abs(diff_qty)} units *less* than the AI recommendation), "
-                f"you reduce your order capital layout and lower monthly holding costs by **${holding_saving:.2f}**. "
+                f"you reduce your order capital layout and lower monthly holding costs by **₹{holding_saving:.2f}**. "
             )
             
             if metrics_b['stockout_probability'] > metrics_a['stockout_probability']:
                 explanation += (
                     f"However, this increases your stockout probability to **{int(metrics_b['stockout_probability']*100)}%** "
-                    f"and risks **{metrics_b['expected_lost_sales']} units** in lost sales (costing **${revenue_lost:.2f}** in expected revenue). "
+                    f"and risks **{metrics_b['expected_lost_sales']} units** in lost sales (costing **₹{revenue_lost:.2f}** in expected revenue). "
                 )
             
             if profit_diff < 0:
                 explanation += (
-                    f"Overall, this under-ordering decreases expected net profit by **${abs(profit_diff):.2f}** compared to the AI plan. "
+                    f"Overall, this under-ordering decreases expected net profit by **₹{abs(profit_diff):.2f}** compared to the AI plan. "
                     f"We advise increasing the order size closer to {rec_qty} units to protect sales velocity."
                 )
             else:
                 explanation += (
-                    f"Surprisingly, this yields a positive cash-flow variance of **${profit_diff:.2f}** due to lower purchasing costs, "
+                    f"Surprisingly, this yields a positive cash-flow variance of **₹{profit_diff:.2f}** due to lower purchasing costs, "
                     f"making it a viable defensive cash-preservation strategy if capital is constrained."
                 )
             return explanation
@@ -290,8 +292,8 @@ class GeminiService:
             
             explanation = (
                 f"By ordering **{sel_qty} units** ({diff_qty} units *more* than the AI recommendation), "
-                f"you secure inventory depth but increase your capital outlay by **${purchase_increase:.2f}** "
-                f"and increase monthly holding costs by **${holding_cost_increase:.2f}**. "
+                f"you secure inventory depth but increase your capital outlay by **₹{purchase_increase:.2f}** "
+                f"and increase monthly holding costs by **₹{holding_cost_increase:.2f}**. "
             )
             
             if metrics_b['expected_lost_sales'] < metrics_a['expected_lost_sales']:
@@ -302,12 +304,12 @@ class GeminiService:
                 
             if profit_diff < 0:
                 explanation += (
-                    f"This decision results in a net profit decrease of **${abs(profit_diff):.2f}** due to overstocking costs. "
+                    f"This decision results in a net profit decrease of **₹{abs(profit_diff):.2f}** due to overstocking costs. "
                     f"We recommend sticking closer to the recommended {rec_qty} units."
                 )
             else:
                 explanation += (
-                    f"This results in a net profit increase of **${profit_diff:.2f}** due to higher sales coverage, "
+                    f"This results in a net profit increase of **₹{profit_diff:.2f}** due to higher sales coverage, "
                     f"representing an aggressive inventory positioning strategy."
                 )
             return explanation

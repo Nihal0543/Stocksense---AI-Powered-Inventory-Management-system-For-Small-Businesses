@@ -1,7 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { api } from '../services/api';
-import { LogIn, UserPlus, AlertCircle } from 'lucide-react';
+import { LogIn, UserPlus, AlertCircle, Sparkles } from 'lucide-react';
+import { useLanguage } from '../context/LanguageContext';
+import LanguageToggle from '../components/LanguageToggle';
+import DarkModeToggle from '../components/DarkModeToggle';
 
 export const Login: React.FC = () => {
   const [isRegister, setIsRegister] = useState(false);
@@ -11,6 +14,7 @@ export const Login: React.FC = () => {
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
+  const { t } = useLanguage();
 
   useEffect(() => {
     // If token exists, direct to home
@@ -44,8 +48,6 @@ export const Login: React.FC = () => {
         formData.append('password', password);
         const loginRes = await api.login(formData);
         
-        // Decode token to extract name (rough estimation or fetch details)
-        // For simple MVP we can save the email as user info
         localStorage.setItem('stocksense_token', loginRes.access_token);
         localStorage.setItem('stocksense_user', JSON.stringify({ name: email.split('@')[0], email }));
         navigate('/');
@@ -58,21 +60,27 @@ export const Login: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen w-screen flex items-center justify-center bg-zinc-50 dark:bg-zinc-950 px-4 relative overflow-hidden transition-colors duration-300">
-      {/* Decorative Blur Spheres */}
+    <div className="min-h-screen w-screen flex flex-col items-center justify-center bg-zinc-50 dark:bg-zinc-950 px-4 relative overflow-hidden transition-colors duration-300">
+      {/* Top right quick controls */}
+      <div className="absolute top-4 right-4 sm:top-6 sm:right-6 flex items-center space-x-2 z-20">
+        <LanguageToggle />
+        <DarkModeToggle />
+      </div>
+
+      {/* Decorative Glow Elements */}
       <div className="absolute top-10 left-10 w-72 h-72 rounded-full bg-emerald-500/10 blur-[100px] pointer-events-none"></div>
       <div className="absolute bottom-10 right-10 w-96 h-96 rounded-full bg-teal-500/10 blur-[120px] pointer-events-none"></div>
 
-      <div className="w-full max-w-md glass-panel p-8 rounded-3xl border border-white/20 dark:border-zinc-800/40 shadow-glass-light dark:shadow-glass-dark relative z-10">
-        <div className="flex flex-col items-center mb-8">
+      <div className="w-full max-w-md glass-panel p-8 rounded-3xl border border-white/40 dark:border-zinc-800/60 shadow-glass-light dark:shadow-glass-dark relative z-10">
+        <div className="flex flex-col items-center mb-8 text-center">
           <div className="h-12 w-12 rounded-2xl bg-emerald-600 flex items-center justify-center text-white font-extrabold text-2xl shadow-lg shadow-emerald-500/30 mb-3">
             S
           </div>
-          <h2 className="text-3xl font-extrabold tracking-tight text-zinc-900 dark:text-white">
-            {isRegister ? 'Create Account' : 'Welcome Back'}
+          <h2 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-zinc-900 dark:text-white">
+            {isRegister ? t('registerWelcome') : t('loginWelcome')}
           </h2>
-          <p className="text-sm text-zinc-500 dark:text-zinc-400 mt-1.5">
-            {isRegister ? 'Sign up for StockSense AI' : 'Sign in to manage store inventory'}
+          <p className="text-xs sm:text-sm text-zinc-500 dark:text-zinc-400 mt-2 max-w-xs leading-relaxed">
+            {isRegister ? t('registerSubtitle') : t('loginSubtitle')}
           </p>
         </div>
 
@@ -84,19 +92,17 @@ export const Login: React.FC = () => {
                 {error}
               </div>
             </div>
-            {error.toLowerCase().includes('connect') && (
-              <p className="text-[11px] text-zinc-500 dark:text-zinc-400 border-t border-red-500/10 pt-2">
-                Tip: When hosting on Netlify, deploy your Python backend to Render or Railway and set <code className="bg-black/10 dark:bg-white/10 px-1 py-0.5 rounded">VITE_API_URL</code> in your Netlify Environment Variables.
-              </p>
-            )}
           </div>
         )}
 
         {/* Demo Credentials Box */}
-        <div className="mb-6 p-3.5 rounded-xl bg-emerald-500/5 border border-emerald-500/20 flex items-center justify-between text-xs">
+        <div className="mb-6 p-3.5 rounded-xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-between text-xs">
           <div>
-            <span className="font-semibold text-emerald-700 dark:text-emerald-400 block">Default Demo Account:</span>
-            <span className="text-zinc-500 dark:text-zinc-400">manager@retailstore.com / password123</span>
+            <span className="font-semibold text-emerald-700 dark:text-emerald-400 block flex items-center gap-1">
+              <Sparkles className="w-3.5 h-3.5" />
+              {t('demoManagerBtn')}:
+            </span>
+            <span className="text-zinc-500 dark:text-zinc-400 font-mono text-[11px]">manager@retailstore.com / password123</span>
           </div>
           <button
             type="button"
@@ -105,7 +111,7 @@ export const Login: React.FC = () => {
               setPassword('password123');
               setError('');
             }}
-            className="px-2.5 py-1 bg-emerald-600 text-white rounded-lg font-medium hover:bg-emerald-500 transition text-[11px]"
+            className="px-3 py-1.5 bg-emerald-600 text-white rounded-lg font-medium hover:bg-emerald-500 transition text-[11px] cursor-pointer shadow-sm"
           >
             Auto-Fill
           </button>
@@ -115,13 +121,13 @@ export const Login: React.FC = () => {
           {isRegister && (
             <div>
               <label className="block text-xs font-bold text-zinc-500 dark:text-zinc-400 uppercase tracking-wider mb-1.5">
-                Full Name
+                {t('nameLabel')}
               </label>
               <input
                 type="text"
                 required
                 className="w-full glass-input"
-                placeholder="John Doe"
+                placeholder="Ramesh Sharma"
                 value={name}
                 onChange={(e) => setName(e.target.value)}
               />
@@ -130,7 +136,7 @@ export const Login: React.FC = () => {
 
           <div>
             <label className="block text-xs font-bold text-zinc-500 dark:text-zinc-400 uppercase tracking-wider mb-1.5">
-              Email Address
+              {t('emailLabel')}
             </label>
             <input
               type="email"
@@ -144,7 +150,7 @@ export const Login: React.FC = () => {
 
           <div>
             <label className="block text-xs font-bold text-zinc-500 dark:text-zinc-400 uppercase tracking-wider mb-1.5">
-              Password
+              {t('passwordLabel')}
             </label>
             <input
               type="password"
@@ -159,19 +165,19 @@ export const Login: React.FC = () => {
           <button
             type="submit"
             disabled={loading}
-            className="w-full bg-emerald-600 hover:bg-emerald-500 dark:bg-emerald-600 dark:hover:bg-emerald-500 text-white font-semibold py-3 px-4 rounded-xl flex items-center justify-center space-x-2 shadow-lg shadow-emerald-600/25 transition-all duration-150 disabled:opacity-50 mt-6"
+            className="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-semibold py-3 px-4 rounded-xl flex items-center justify-center space-x-2 shadow-lg shadow-emerald-600/25 transition-all duration-150 disabled:opacity-50 mt-6 cursor-pointer"
           >
             {loading ? (
               <div className="h-5 w-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
             ) : isRegister ? (
               <>
                 <UserPlus size={18} />
-                <span>Create Account</span>
+                <span>{t('signUpBtn')}</span>
               </>
             ) : (
               <>
                 <LogIn size={18} />
-                <span>Sign In</span>
+                <span>{t('signInBtn')}</span>
               </>
             )}
           </button>
@@ -183,11 +189,11 @@ export const Login: React.FC = () => {
               setIsRegister(!isRegister);
               setError('');
             }}
-            className="text-sm font-semibold text-emerald-600 dark:text-emerald-400 hover:underline"
+            className="text-xs sm:text-sm font-semibold text-emerald-600 dark:text-emerald-400 hover:underline cursor-pointer"
           >
             {isRegister
-              ? 'Already have an account? Sign In'
-              : "Don't have an account? Sign Up"}
+              ? t('alreadyHaveAccountLink')
+              : t('createAccountLink')}
           </button>
         </div>
       </div>

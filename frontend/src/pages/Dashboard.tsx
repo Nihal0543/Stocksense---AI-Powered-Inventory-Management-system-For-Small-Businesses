@@ -3,9 +3,10 @@ import { Link } from 'react-router-dom';
 import { api } from '../services/api';
 import type { DashboardData } from '../types';
 import GlassCard from '../components/GlassCard';
+import { useLanguage } from '../context/LanguageContext';
 import { 
   TrendingUp, 
-  DollarSign, 
+  IndianRupee, 
   Package, 
   AlertTriangle, 
   FileSpreadsheet, 
@@ -33,6 +34,7 @@ export const Dashboard: React.FC = () => {
   const [data, setData] = useState<DashboardData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const { t, formatCurrency } = useLanguage();
 
   useEffect(() => {
     fetchDashboardData();
@@ -73,10 +75,10 @@ export const Dashboard: React.FC = () => {
             <Database size={32} />
           </div>
           <h2 className="text-3xl font-extrabold text-zinc-900 dark:text-white tracking-tight">
-            Database Empty
+            {t('databaseEmpty')}
           </h2>
           <p className="text-zinc-500 dark:text-zinc-400 mt-3 max-w-md mx-auto text-sm leading-relaxed">
-            Welcome to StockSense AI! To get started, you need to ingest a retail dataset containing products, inventory, and historical sales transactions.
+            {t('databaseEmptyDesc')}
           </p>
           <div className="mt-8 flex flex-col sm:flex-row justify-center space-y-3 sm:space-y-0 sm:space-x-4">
             <Link
@@ -84,7 +86,7 @@ export const Dashboard: React.FC = () => {
               className="bg-emerald-600 hover:bg-emerald-500 text-white font-semibold px-6 py-3 rounded-xl flex items-center justify-center space-x-2 shadow-lg shadow-emerald-600/20 transition-all duration-150"
             >
               <FileSpreadsheet size={18} />
-              <span>Go to Data Ingestion</span>
+              <span>{t('goToIngestion')}</span>
               <ArrowRight size={16} />
             </Link>
           </div>
@@ -98,52 +100,52 @@ export const Dashboard: React.FC = () => {
 
   const kpiCards = [
     {
-      title: "Today's Revenue",
+      title: t('kpiTodayRevenue'),
       value: kpis.today_revenue,
-      icon: DollarSign,
+      icon: IndianRupee,
       type: "currency",
       color: "text-emerald-500 bg-emerald-500/10",
-      description: "Aggregated sales for last active day"
+      description: t('kpiTodayRevenueDesc')
     },
     {
-      title: "Inventory Value",
+      title: t('kpiInventoryValue'),
       value: kpis.inventory_value,
       icon: Package,
       type: "currency",
       color: "text-blue-500 bg-blue-500/10",
-      description: "Current stock asset evaluation"
+      description: t('kpiInventoryValueDesc')
     },
     {
-      title: "Total Products",
+      title: t('kpiTotalProducts'),
       value: kpis.total_products,
       icon: Database,
       type: "number",
       color: "text-indigo-500 bg-indigo-500/10",
-      description: "Unique SKUs registered in database"
+      description: t('kpiTotalProductsDesc')
     },
     {
-      title: "Low Stock Items",
+      title: t('kpiLowStock'),
       value: kpis.low_stock_products,
       icon: AlertTriangle,
       type: "number",
       color: kpis.low_stock_products > 0 ? "text-amber-500 bg-amber-500/10 animate-pulse" : "text-zinc-500 bg-zinc-500/10",
-      description: "Products below reorder levels"
+      description: t('kpiLowStockDesc')
     },
     {
-      title: "Overstock Items",
+      title: t('kpiOverstock'),
       value: kpis.overstock_products,
       icon: TrendingDown,
       type: "number",
       color: "text-pink-500 bg-pink-500/10",
-      description: "Products with high holding costs"
+      description: t('kpiOverstockDesc')
     },
     {
-      title: "Tomorrow Revenue Est.",
+      title: t('kpiTomorrowRevenue'),
       value: kpis.predicted_tomorrow_revenue,
       icon: TrendingUp,
       type: "currency",
       color: "text-teal-500 bg-teal-500/10",
-      description: "Expected sales from XGBoost forecast"
+      description: t('kpiTomorrowRevenueDesc')
     }
   ];
 
@@ -154,6 +156,7 @@ export const Dashboard: React.FC = () => {
           {error}
         </div>
       )}
+
       {/* KPI Cards Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {kpiCards.map((card, idx) => (
@@ -165,8 +168,8 @@ export const Dashboard: React.FC = () => {
                 </p>
                 <h3 className="text-3xl font-extrabold text-zinc-900 dark:text-white mt-2 tracking-tight">
                   {card.type === "currency" 
-                    ? `$${card.value.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
-                    : card.value.toLocaleString()
+                    ? formatCurrency(card.value)
+                    : card.value.toLocaleString('en-IN')
                   }
                 </h3>
                 <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-2 leading-relaxed">
@@ -186,12 +189,12 @@ export const Dashboard: React.FC = () => {
         {/* Sales Trend (Spans 2 cols) */}
         <GlassCard 
           className="lg:col-span-2" 
-          title="Daily Sales & Revenue Trend" 
-          subtitle="Showing daily retail revenue over the past month."
+          title={t('salesTrendTitle')} 
+          subtitle={t('salesTrendSubtitle')}
         >
           <div className="h-[320px] w-full">
             <ResponsiveContainer width="100%" height="100%">
-              <AreaChart data={data.sales_trends} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+              <AreaChart data={data.sales_trends} margin={{ top: 10, right: 10, left: -10, bottom: 0 }}>
                 <defs>
                   <linearGradient id="colorRevenue" x1="0" y1="0" x2="0" y2="1">
                     <stop offset="5%" stopColor="#10b981" stopOpacity={0.3}/>
@@ -209,13 +212,14 @@ export const Dashboard: React.FC = () => {
                   tickLine={false} 
                   axisLine={false}
                   tick={{ fill: '#71717a', fontSize: 11 }}
-                  tickFormatter={(v) => `$${v}`}
+                  tickFormatter={(v) => `₹${Number(v).toLocaleString('en-IN')}`}
                 />
                 <Tooltip 
-                  contentStyle={{ backgroundColor: 'rgba(24, 24, 27, 0.85)', borderRadius: '12px', border: '1px solid rgba(255,255,255,0.1)', color: '#fff' }}
+                  contentStyle={{ backgroundColor: 'rgba(24, 24, 27, 0.90)', borderRadius: '12px', border: '1px solid rgba(255,255,255,0.1)', color: '#fff' }}
                   labelClassName="font-bold text-xs"
+                  formatter={(val: any) => [formatCurrency(Number(val)), t('dailyRevenue')]}
                 />
-                <Area type="monotone" dataKey="revenue" name="Daily Revenue" stroke="#10b981" strokeWidth={2.5} fillOpacity={1} fill="url(#colorRevenue)" />
+                <Area type="monotone" dataKey="revenue" name={t('dailyRevenue')} stroke="#10b981" strokeWidth={2.5} fillOpacity={1} fill="url(#colorRevenue)" />
               </AreaChart>
             </ResponsiveContainer>
           </div>
@@ -223,8 +227,8 @@ export const Dashboard: React.FC = () => {
 
         {/* Category Breakdown (Spans 1 col) */}
         <GlassCard 
-          title="Revenue by Category" 
-          subtitle="Revenue breakdown across product categories."
+          title={t('categoryBreakdownTitle')} 
+          subtitle={t('categoryBreakdownSubtitle')}
         >
           <div className="h-[320px] w-full flex flex-col justify-between">
             <div className="h-[220px] w-full">
@@ -245,8 +249,8 @@ export const Dashboard: React.FC = () => {
                     ))}
                   </Pie>
                   <Tooltip 
-                    contentStyle={{ backgroundColor: 'rgba(24, 24, 27, 0.85)', borderRadius: '12px', border: 'none', color: '#fff' }}
-                    formatter={(v) => `$${Number(v).toFixed(2)}`}
+                    contentStyle={{ backgroundColor: 'rgba(24, 24, 27, 0.90)', borderRadius: '12px', border: 'none', color: '#fff' }}
+                    formatter={(v: any) => formatCurrency(Number(v))}
                   />
                 </PieChart>
               </ResponsiveContainer>
@@ -258,7 +262,9 @@ export const Dashboard: React.FC = () => {
                 <div key={idx} className="flex items-center space-x-1.5 truncate">
                   <div className="h-2 w-2 rounded-full flex-shrink-0" style={{ backgroundColor: COLORS[idx % COLORS.length] }}></div>
                   <span className="text-zinc-500 dark:text-zinc-400 truncate">{item.category}</span>
-                  <span className="font-semibold text-zinc-900 dark:text-zinc-200">${Math.round(item.revenue)}</span>
+                  <span className="font-semibold text-zinc-900 dark:text-zinc-200">
+                    ₹{Math.round(item.revenue).toLocaleString('en-IN')}
+                  </span>
                 </div>
               ))}
             </div>
@@ -268,12 +274,12 @@ export const Dashboard: React.FC = () => {
 
       {/* Supplier Performance Chart */}
       <GlassCard 
-        title="Supplier Units Sold & Portfolio Size" 
-        subtitle="Analysing product quantities sold and count of unique products per supplier."
+        title={t('supplierPerfTitle')} 
+        subtitle={t('supplierPerfSubtitle')}
       >
         <div className="h-[340px] w-full">
           <ResponsiveContainer width="100%" height="100%">
-            <BarChart data={data.supplier_performance} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+            <BarChart data={data.supplier_performance} margin={{ top: 10, right: 10, left: -10, bottom: 0 }}>
               <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="rgba(200, 200, 200, 0.15)"/>
               <XAxis 
                 dataKey="supplier" 
@@ -287,11 +293,11 @@ export const Dashboard: React.FC = () => {
                 tick={{ fill: '#71717a', fontSize: 11 }}
               />
               <Tooltip
-                contentStyle={{ backgroundColor: 'rgba(24, 24, 27, 0.85)', borderRadius: '12px', border: 'none', color: '#fff' }}
+                contentStyle={{ backgroundColor: 'rgba(24, 24, 27, 0.90)', borderRadius: '12px', border: 'none', color: '#fff' }}
               />
               <Legend verticalAlign="top" height={36} iconType="circle" />
-              <Bar dataKey="total_sold" name="Units Sold" fill="#10b981" radius={[4, 4, 0, 0]} />
-              <Bar dataKey="products_count" name="Unique Products" fill="#3b82f6" radius={[4, 4, 0, 0]} />
+              <Bar dataKey="total_sold" name={t('unitsSold')} fill="#10b981" radius={[4, 4, 0, 0]} />
+              <Bar dataKey="products_count" name={t('uniqueProducts')} fill="#3b82f6" radius={[4, 4, 0, 0]} />
             </BarChart>
           </ResponsiveContainer>
         </div>

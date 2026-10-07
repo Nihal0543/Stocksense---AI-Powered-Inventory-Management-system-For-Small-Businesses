@@ -2,12 +2,15 @@ import React, { useEffect, useState } from 'react';
 import { Outlet, useNavigate, useLocation } from 'react-router-dom';
 import Sidebar from '../components/Sidebar';
 import DarkModeToggle from '../components/DarkModeToggle';
+import LanguageToggle from '../components/LanguageToggle';
+import { useLanguage } from '../context/LanguageContext';
 
 export const MainLayout: React.FC = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const [userName, setUserName] = useState('Store Manager');
   const [loading, setLoading] = useState(true);
+  const { t } = useLanguage();
 
   useEffect(() => {
     const token = localStorage.getItem('stocksense_token');
@@ -39,17 +42,17 @@ export const MainLayout: React.FC = () => {
     );
   }
 
-  // Get Page Titles dynamically based on pathname
+  // Get Page Titles dynamically based on pathname and language
   const getPageHeader = () => {
     const path = location.pathname;
-    if (path === '/') return { title: 'Operational Dashboard', subtitle: 'Overview of retail sales, inventory counts, and forecasting alerts.' };
-    if (path === '/inventory') return { title: 'Inventory Directory', subtitle: 'Search, filter, and inspect stock items across your warehouses.' };
-    if (path === '/forecast') return { title: 'Predictive Demand Forecast', subtitle: 'Tomorrow and next-week purchase demand driven by XGBoost ML.' };
-    if (path === '/recommendations') return { title: 'Restocking Suggestions', subtitle: 'AI-guided restock orders, risk analysis, and revenue impacts.' };
-    if (path === '/simulator') return { title: 'Decision Impact Simulator', subtitle: 'Flagship tool: simulate order size adjustments and review visual trade-offs.' };
-    if (path === '/chat') return { title: 'AI Assistant Chat', subtitle: 'Ask Gemini questions about reorders, overstocks, and sales patterns.' };
-    if (path === '/settings') return { title: 'Looker Studio & Credentials', subtitle: 'Access database views for Looker Studio and update configurations.' };
-    return { title: 'StockSense AI', subtitle: 'AI Powered Retail Inventory Decision Intelligence Platform' };
+    if (path === '/') return { title: t('headerDashTitle'), subtitle: t('headerDashSubtitle') };
+    if (path === '/inventory') return { title: t('headerInvTitle'), subtitle: t('headerInvSubtitle') };
+    if (path === '/forecast') return { title: t('headerForecastTitle'), subtitle: t('headerForecastSubtitle') };
+    if (path === '/recommendations') return { title: t('headerRecTitle'), subtitle: t('headerRecSubtitle') };
+    if (path === '/simulator') return { title: t('headerSimTitle'), subtitle: t('headerSimSubtitle') };
+    if (path === '/chat') return { title: t('headerChatTitle'), subtitle: t('headerChatSubtitle') };
+    if (path === '/settings') return { title: t('headerSettingsTitle'), subtitle: t('headerSettingsSubtitle') };
+    return { title: t('appName'), subtitle: t('appTagline') };
   };
 
   const header = getPageHeader();
@@ -62,22 +65,23 @@ export const MainLayout: React.FC = () => {
       {/* Main Content Pane */}
       <div className="flex-1 flex flex-col min-w-0 md:pl-0 pt-16 md:pt-0">
         {/* Top Header Panel */}
-        <header className="flex items-center justify-between p-6 border-b border-zinc-200/80 dark:border-zinc-800/40 bg-white/50 dark:bg-zinc-900/20 backdrop-blur-md sticky top-0 z-20">
+        <header className="flex items-center justify-between p-4 md:p-6 border-b border-zinc-200/80 dark:border-zinc-800/40 bg-white/70 dark:bg-zinc-900/60 backdrop-blur-md sticky top-0 z-20 transition-colors">
           <div>
-            <h1 className="text-2xl font-extrabold tracking-tight text-zinc-950 dark:text-white">
+            <h1 className="text-xl md:text-2xl font-extrabold tracking-tight text-zinc-950 dark:text-white">
               {header.title}
             </h1>
-            <p className="text-sm text-zinc-500 dark:text-zinc-400 mt-0.5">
+            <p className="text-xs md:text-sm text-zinc-500 dark:text-zinc-400 mt-0.5 max-w-2xl">
               {header.subtitle}
             </p>
           </div>
-          <div className="flex items-center space-x-3">
+          <div className="flex items-center space-x-2 md:space-x-3">
+            <LanguageToggle />
             <DarkModeToggle />
           </div>
         </header>
 
         {/* Page Inner Container */}
-        <main className="flex-1 p-6 md:p-8 max-w-[1600px] w-full mx-auto">
+        <main className="flex-1 p-4 md:p-8 max-w-[1600px] w-full mx-auto">
           <Outlet />
         </main>
       </div>

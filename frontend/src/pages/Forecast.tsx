@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { api } from '../services/api';
 import type { ForecastItem } from '../types';
 import GlassCard from '../components/GlassCard';
+import { useLanguage } from '../context/LanguageContext';
 import { Brain, Sliders, CheckCircle2, AlertOctagon } from 'lucide-react';
 
 export const Forecast: React.FC = () => {
@@ -11,6 +12,7 @@ export const Forecast: React.FC = () => {
   const [training, setTraining] = useState(false);
   const [trainStatus, setTrainStatus] = useState<{ type: 'success' | 'error'; message: string } | null>(null);
   const [error, setError] = useState('');
+  const { t } = useLanguage();
   
   const navigate = useNavigate();
 
@@ -23,12 +25,6 @@ export const Forecast: React.FC = () => {
     setError('');
     try {
       const data = await api.getForecast();
-      
-      // The backend returns predictions for tomorrow and next week.
-      // We will group by product and take tomorrow's prediction for simplicity, 
-      // or display them grouped. Let's filter to keep tomorrow's predictions for the main grid.
-      // E.g., tomorrow's date is today + 1 day.
-      // We can sort them so tomorrow's forecasts are highlighted.
       setForecasts(data);
     } catch (err: any) {
       setError(err.message || 'Failed to load forecasts');
@@ -44,20 +40,19 @@ export const Forecast: React.FC = () => {
       const res = await api.trainForecastModel();
       setTrainStatus({
         type: 'success',
-        message: res.message || 'Model trained successfully!'
+        message: res.message || t('modelTrainedSuccess')
       });
-      fetchForecasts(); // reload
+      fetchForecasts();
     } catch (err: any) {
       setTrainStatus({
         type: 'error',
-        message: err.message || 'Failed to train XGBoost model.'
+        message: err.message || t('modelTrainedFailed')
       });
     } finally {
       setTraining(false);
     }
   };
 
-  // Group forecasts by product for single line representation (tomorrow vs next week)
   const getProductForecastRows = () => {
     const productMap: Record<number, {
       product: any;
@@ -75,12 +70,10 @@ export const Forecast: React.FC = () => {
         };
       }
 
-      // Check dates to assign
       const fDate = new Date(f.forecast_date);
       const today = new Date();
       const diffDays = Math.ceil((fDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
       
-      // If diff is closer to 1 -> tomorrow, otherwise next week
       if (diffDays <= 2) {
         productMap[pid].tomorrow = f;
       } else {
@@ -106,9 +99,9 @@ export const Forecast: React.FC = () => {
             <Brain size={24} />
           </div>
           <div>
-            <h3 className="font-extrabold text-zinc-950 dark:text-white">Demand Forecasting Engine</h3>
+            <h3 className="font-extrabold text-zinc-950 dark:text-white">{t('modelAccuracy')}</h3>
             <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-1 max-w-xl leading-relaxed">
-              StockSense AI leverages an **XGBoost Regressor** trained on historical sales transactions, rolling demand, weekday indices, and monthly seasonality to forecast upcoming stocking requirements.
+              StockSense AI leverages an XGBoost Regressor trained on historical sales transactions, rolling demand, weekday indices, and monthly seasonality to forecast upcoming stocking requirements.
             </p>
           </div>
         </div>
@@ -116,17 +109,17 @@ export const Forecast: React.FC = () => {
         <button
           onClick={handleTrainModel}
           disabled={training}
-          className="bg-emerald-600 hover:bg-emerald-500 text-white font-semibold text-sm py-3 px-6 rounded-xl flex items-center justify-center space-x-2 shadow-md transition-all self-stretch md:self-auto disabled:opacity-50"
+          className="bg-emerald-600 hover:bg-emerald-500 text-white font-semibold text-sm py-3 px-6 rounded-xl flex items-center justify-center space-x-2 shadow-md transition-all self-stretch md:self-auto disabled:opacity-50 cursor-pointer"
         >
           {training ? (
             <>
               <div className="h-4 w-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-              <span>Training XGBoost...</span>
+              <span>{t('trainingInProgress')}</span>
             </>
           ) : (
             <>
               <Brain size={16} />
-              <span>Train Demand Model</span>
+              <span>{t('trainModelBtn')}</span>
             </>
           )}
         </button>
@@ -144,7 +137,7 @@ export const Forecast: React.FC = () => {
       )}
 
       {/* Forecast Table Card */}
-      <GlassCard title="Demand Predictions Table" subtitle="Comparing current inventories against short-term forecasts.">
+      <GlassCard title={t('forecastTableTitle')} subtitle={t('forecastPageSubtitle')}>
         {loading ? (
           <div className="py-12 flex justify-center">
             <div className="h-8 w-8 border-4 border-emerald-500 border-t-transparent rounded-full animate-spin"></div>
@@ -153,21 +146,19 @@ export const Forecast: React.FC = () => {
           <div className="text-red-500 text-center py-6">{error}</div>
         ) : forecastRows.length === 0 ? (
           <div className="text-center py-12 text-zinc-500 dark:text-zinc-400 text-sm">
-            No forecasts available. Please upload sales historical data and click 'Train Demand Model'.
+            {t('noProductsFound')}
           </div>
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full text-left border-collapse">
               <thead>
                 <tr className="border-b border-zinc-200 dark:border-zinc-800 text-xs font-bold text-zinc-400 dark:text-zinc-500 uppercase tracking-wider">
-                  <th className="py-3.5 px-4">Product</th>
-                  <th className="py-3.5 px-4 text-right">Current Stock</th>
-                  <th className="py-3.5 px-4 text-right">Forecast Tomorrow</th>
-                  <th className="py-3.5 px-4 text-right">Forecast Next Week</th>
-                  <th className="py-3.5 px-4 text-right">Difference (Diff)</th>
-                  <th className="py-3.5 px-4 text-center">Stockout Risk</th>
-                  <th className="py-3.5 px-4 text-center">Confidence</th>
-                  <th className="py-3.5 px-4 text-center">Actions</th>
+                  <th className="py-3.5 px-4">{t('thProduct')}</th>
+                  <th className="py-3.5 px-4 text-right">{t('tomorrowDemand')}</th>
+                  <th className="py-3.5 px-4 text-right">{t('nextWeekDemand')}</th>
+                  <th className="py-3.5 px-4 text-center">{t('stockoutProbability')}</th>
+                  <th className="py-3.5 px-4 text-center">{t('r2Score')}</th>
+                  <th className="py-3.5 px-4 text-center">{t('thActions')}</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-zinc-200/50 dark:divide-zinc-800/30 text-sm">
@@ -175,54 +166,34 @@ export const Forecast: React.FC = () => {
                   const prod = row.product;
                   const tom = row.tomorrow?.predicted_sales ?? 0;
                   const nwk = row.nextWeek?.predicted_sales ?? 0;
-                  // Wait, let's find current stock by fetching inventory inside table or look up
-                  // In backend get_forecasts, we included product, but let's calculate:
-                  // The difference can be: tomorrow_forecast - stock.
-                  // Since we don't have current stock nested inside forecast API directly, we can assume a placeholder or read current_stock.
-                  // Wait, let's check what `api.getForecast()` returns:
-                  // Each item has: predicted_sales, forecast_date, stockout_probability, confidence, and product (id, sku, name, category, price)
-                  // Wait! Does the forecast item return current stock? No, but we can query it or show forecast numbers!
-                  // Let's check: can we compute difference as `tom` or calculate stockout probability pill directly?
-                  // The stockout probability is calculated by backend based on current stock, which is awesome! So the probability is accurate!
-                  // Let's display:
                   const prob = row.tomorrow?.stockout_probability ?? 0.0;
                   const confidence = row.tomorrow?.confidence ?? 80;
                   
-                  let riskLevel = 'LOW';
+                  let riskLevel = t('lowRisk');
                   let riskColor = 'text-emerald-500';
                   
                   if (prob > 0.75) {
-                    riskLevel = 'CRITICAL';
+                    riskLevel = t('criticalRisk');
                     riskColor = 'text-red-500 font-bold';
                   } else if (prob > 0.4) {
-                    riskLevel = 'WARNING';
+                    riskLevel = t('moderateRisk');
                     riskColor = 'text-amber-500 font-semibold';
                   }
 
                   return (
                     <tr 
                       key={prod.id} 
-                      className="hover:bg-zinc-50/40 dark:hover:bg-zinc-900/10 transition-colors"
+                      className="hover:bg-zinc-50/60 dark:hover:bg-zinc-800/20 transition-colors"
                     >
                       <td className="py-4 px-4">
                         <div className="font-semibold text-zinc-900 dark:text-white">{prod.product_name}</div>
                         <div className="text-xs text-zinc-400 dark:text-zinc-500 mt-0.5">{prod.sku} • {prod.category}</div>
-                      </td>
-                      <td className="py-4 px-4 text-right font-medium">
-                        {/* We'll show forecasted quantity here or mock current stock since it's used to calculate prob */}
-                        {/* We'll display forecast predictions clearly */}
-                        <span className="text-zinc-500 dark:text-zinc-400">-</span>
                       </td>
                       <td className="py-4 px-4 text-right font-bold text-zinc-900 dark:text-white">
                         {tom.toFixed(1)} units
                       </td>
                       <td className="py-4 px-4 text-right font-medium text-zinc-600 dark:text-zinc-300">
                         {nwk.toFixed(1)} units
-                      </td>
-                      <td className="py-4 px-4 text-right font-mono text-xs">
-                        <span className={tom > 20 ? "text-emerald-500" : "text-zinc-400"}>
-                          +{tom.toFixed(1)}
-                        </span>
                       </td>
                       <td className="py-4 px-4">
                         <div className="flex flex-col items-center">
@@ -244,11 +215,11 @@ export const Forecast: React.FC = () => {
                         <div className="flex justify-center">
                           <button
                             onClick={() => handleSimulateClick(prod.id)}
-                            className="p-2 hover:bg-emerald-500/10 hover:text-emerald-600 dark:hover:bg-emerald-500/20 text-zinc-400 dark:text-zinc-500 rounded-xl transition-all flex items-center space-x-1"
+                            className="p-2 hover:bg-emerald-500/10 hover:text-emerald-600 dark:hover:bg-emerald-500/20 text-zinc-400 dark:text-zinc-500 rounded-xl transition-all flex items-center space-x-1 cursor-pointer"
                             title="Open Decision Simulator"
                           >
                             <Sliders size={16} />
-                            <span className="text-xs font-bold px-0.5">Simulate</span>
+                            <span className="text-xs font-bold px-0.5">{t('btnSimulate')}</span>
                           </button>
                         </div>
                       </td>
