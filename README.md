@@ -10,12 +10,33 @@
 
 ## 🌐 Live Hosted Links
 
-| Component | Platform | Live URL |
+| Component | Platform | Live URL / Access Link |
 | :--- | :--- | :--- |
-| **Frontend Web Application** | **Netlify** | [Open StockSense AI on Netlify](https://stocksense-ai-retail.netlify.app) *(or your configured Netlify site domain)* |
-| **Backend REST API Server** | **Render** | [https://stocksense-ai-backend.onrender.com](https://stocksense-ai-backend.onrender.com) |
-| **Interactive API Documentation** | **Render Swagger UI** | [https://stocksense-ai-backend.onrender.com/docs](https://stocksense-ai-backend.onrender.com/docs) |
-| **Source Code Repository** | **GitHub** | [Nihal0543/Stocksense AI](https://github.com/Nihal0543/Stocksense---AI-Powered-Inventory-Management-system-For-Small-Businesses) |
+| **Frontend Web Application** | **Netlify** | 🚀 **[Launch StockSense AI on Netlify](https://stocksense-ai-retail.netlify.app)** *(or visit your connected Netlify site)* |
+| **Backend REST API Server** | **Render** | ⚡ **[https://stocksense-ai-backend.onrender.com](https://stocksense-ai-backend.onrender.com)** |
+| **Interactive API Documentation** | **Render Swagger UI** | 📖 **[https://stocksense-ai-backend.onrender.com/docs](https://stocksense-ai-backend.onrender.com/docs)** |
+| **GitHub Source Code** | **GitHub** | 💻 **[Nihal0543/Stocksense AI Repository](https://github.com/Nihal0543/Stocksense---AI-Powered-Inventory-Management-system-For-Small-Businesses)** |
+
+---
+
+## 🏬 Authentic Indian Kirana Store Catalog
+
+The system is pre-loaded with high-velocity, authentic commodities commonly found in Indian neighborhood Kirana stores, priced in Indian Rupees (₹):
+
+| SKU | Product Name | Category | Supplier | Price (₹) | Default Stock Status |
+| :--- | :--- | :--- | :--- | :--- | :--- |
+| `KIRANA-ATTA-001` | **Aashirvaad Shudh Chakki Atta (5kg)** | Atta & Flours | ITC Limited | ₹245.00 | ⚠️ Low Stock (8 / 15 reorder) |
+| `KIRANA-OIL-002` | **Fortune Sunlite Refined Sunflower Oil (1L)** | Edible Oils | Adani Wilmar | ₹135.00 | 🟢 Healthy Stock (45 / 20) |
+| `KIRANA-MILK-003` | **Amul Taaza Homogenised Toned Milk (1L)** | Dairy & Daily Fresh | GCMMF (Amul) | ₹56.00 | 🟢 High Turnover (110 / 40) |
+| `KIRANA-SALT-004` | **Tata Salt Iodised (1kg)** | Spices & Condiments | Tata Consumer Products | ₹28.00 | 🟢 Healthy Stock (135 / 30) |
+| `KIRANA-RICE-005` | **India Gate Rozzana Basmati Rice (1kg)** | Rice & Grains | KRBL Limited | ₹95.00 | ⚠️ Low Stock (14 / 25 reorder) |
+| `KIRANA-MAGGI-006` | **Maggi 2-Minute Masala Noodles (4-Pack)** | Snacks & Instant Food | Nestlé India | ₹56.00 | 🟢 Fast Moving (80 / 30) |
+| `KIRANA-PARLE-007` | **Parle-G Gold Glucose Biscuits (250g)** | Bakery & Biscuits | Parle Products | ₹30.00 | 🟢 Everyday Snack (160 / 45) |
+| `KIRANA-CHAI-008` | **Tata Tea Premium Desh Ki Chai (500g)** | Beverages & Tea | Tata Consumer Products | ₹210.00 | ⚠️ Low Stock (16 / 20 reorder) |
+| `KIRANA-SURF-009` | **Surf Excel Easy Wash Detergent (1kg)** | Household Cleaning | Hindustan Unilever | ₹145.00 | 🟢 Healthy Stock (38 / 15) |
+| `KIRANA-DETTOL-010` | **Dettol Germ Protection Soap (100g)** | Personal Care | Reckitt Benckiser | ₹42.00 | 🔵 Overstock (240 / 30) |
+| `KIRANA-DAL-011` | **Desi Toor Dal Unpolished (1kg)** | Pulses & Dals | Desi Agro Traders | ₹165.00 | 🟢 Healthy Stock (22 / 20) |
+| `KIRANA-SUGAR-012` | **Madhur Pure & Hygienic Sugar (1kg)** | Sugar & Jaggery | Shree Renuka Sugars | ₹52.00 | 🟢 Healthy Stock (115 / 35) |
 
 ---
 
@@ -42,6 +63,7 @@ Traditional retail inventory management often suffers from manual stock counts, 
 ---
 
 ## 🔑 Quick Demo Credentials
+
 
 Try the live application without setting up a new account:
 

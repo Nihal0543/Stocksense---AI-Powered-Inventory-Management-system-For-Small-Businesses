@@ -2,9 +2,10 @@ import os
 import requests
 
 def seed_database_via_api():
-    base_url = "https://stocksense-ai-backend.onrender.com/api"
+    base_url = os.environ.get("STOCKSENSE_API_URL", "http://localhost:8000/api")
     
     # 1. Register default user
+    print(f"[API Seed] Connecting to {base_url}...")
     print("[API Seed] Registering default manager...")
     register_url = f"{base_url}/auth/register"
     user_data = {
@@ -45,7 +46,10 @@ def seed_database_via_api():
     }
 
     # 3. Upload Sample CSV
-    csv_path = "backend/data/sample_retail_data.csv"
+    script_dir = os.path.dirname(os.path.abspath(__file__))
+    csv_path = os.path.join(script_dir, "sample_retail_data.csv")
+    if not os.path.exists(csv_path):
+        csv_path = "backend/data/sample_retail_data.csv"
     print(f"[API Seed] Uploading and cleaning dataset from: {csv_path}...")
     upload_url = f"{base_url}/upload"
     

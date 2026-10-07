@@ -7,8 +7,10 @@ from app.routers.auth import get_password_hash
 def auto_seed_db(db: Session):
     """
     Automatically verifies that the default store manager and initial
-    catalog exist. If the database is fresh/empty (e.g. on Render or Docker),
-    it automatically populates initial products, inventory, sales, and trains ML models.
+    Kirana catalog exist. If the database is fresh/empty or contains legacy
+    non-Kirana products (e.g., Electronics, TVs), it automatically wipes
+    legacy records and populates authentic Indian Kirana products,
+    stock inventories, sales histories, and re-trains the ML forecasting models.
     """
     try:
         # 1. Ensure Store Manager account exists
@@ -23,10 +25,30 @@ def auto_seed_db(db: Session):
             db.commit()
             print("[Auto-Seed] Created default Store Manager account (manager@retailstore.com / password123)")
 
-        # 2. Check if products exist; if not, ingest sample_retail_data.csv
+        # 2. Check for legacy non-Kirana items or empty product table
+        legacy_products = db.query(Product).filter(
+            (Product.sku.like("ELEC%")) | 
+            (Product.sku.like("APP%")) | 
+            (Product.sku.like("HOME%")) |
+            (Product.product_name.like("%LED TV%")) |
+            (Product.product_name.like("%Office Chair%"))
+        ).all()
+
         product_count = db.query(Product).count()
-        if product_count == 0:
-            print("[Auto-Seed] Empty product table detected. Ingesting sample dataset...")
+
+        if legacy_products or product_count == 0:
+            if legacy_products:
+                print(f"[Auto-Seed] Detected {len(legacy_products)} legacy non-Kirana products. Replacing with authentic Kirana catalog...")
+                # Clear legacy recommendations, forecasts, sales, inventories, products
+                db.query(Recommendation).delete()
+                db.query(Forecast).delete()
+                db.query(Sale).delete()
+                db.query(Inventory).delete()
+                db.query(Product).delete()
+                db.commit()
+            else:
+                print("[Auto-Seed] Empty product table detected. Ingesting Kirana store catalog...")
+
             # Look for sample_retail_data.csv in possible paths
             possible_paths = [
                 os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))), "data", "sample_retail_data.csv"),
@@ -43,13 +65,13 @@ def auto_seed_db(db: Session):
                 sales_count = 0
 
                 for _, row in df.iterrows():
-                    sku = row['sku']
+                    sku = str(row['sku']).strip()
                     if sku not in sku_to_product_id:
                         prod = Product(
                             sku=sku,
-                            product_name=row['product_name'],
-                            category=row['category'],
-                            supplier=row['supplier'],
+                            product_name=str(row['product_name']).strip(),
+                            category=str(row['category']).strip(),
+                            supplier=str(row['supplier']).strip(),
                             price=float(row['price'])
                         )
                         db.add(prod)
@@ -64,7 +86,7 @@ def auto_seed_db(db: Session):
                             product_id=pid,
                             current_stock=int(row['current_stock']),
                             reorder_level=int(row['reorder_level']),
-                            warehouse=str(row['warehouse'])
+                            warehouse=str(row['warehouse']).strip()
                         )
                         db.add(inv)
                         processed_inventories.add(pid)
@@ -81,17 +103,17 @@ def auto_seed_db(db: Session):
                     sales_count += 1
 
                 db.commit()
-                print(f"[Auto-Seed] Successfully loaded {len(sku_to_product_id)} products and {sales_count} sales transactions.")
+                print(f"[Auto-Seed] Successfully loaded {len(sku_to_product_id)} authentic Kirana products and {sales_count} sales transactions.")
 
                 # Train forecasting model and generate recommendations
                 try:
                     from app.services.forecast_service import forecast_service
                     from app.services.recommendation import recommendation_service
-                    print("[Auto-Seed] Training XGBoost demand forecasting model...")
+                    print("[Auto-Seed] Training XGBoost demand forecasting model on Kirana dataset...")
                     forecast_service.train_model(db)
-                    print("[Auto-Seed] Generating initial AI recommendations...")
+                    print("[Auto-Seed] Generating initial AI recommendations for Kirana inventory...")
                     recommendation_service.generate_recommendations(db)
-                    print("[Auto-Seed] Initialization complete.")
+                    print("[Auto-Seed] Kirana database initialization complete.")
                 except Exception as ml_err:
                     print(f"[Auto-Seed] Warning: ML initialization deferred: {ml_err}")
             else:

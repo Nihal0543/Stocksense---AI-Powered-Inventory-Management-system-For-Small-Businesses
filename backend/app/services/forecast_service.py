@@ -83,7 +83,7 @@ class ForecastService:
         df["holiday"] = ((df["weekday"] == 6) | (df["date"].dt.day.isin([1, 25, 31]))).astype(int)
 
         # Fill NaNs
-        df = df.fillna(method="bfill").fillna(0)
+        df = df.bfill().fillna(0)
 
         # Features & Target
         features = ["product_id", "price", "weekday", "month", "day", "lag_1", "lag_7", "rolling_mean_7", "rolling_mean_30", "promotion", "holiday"]
